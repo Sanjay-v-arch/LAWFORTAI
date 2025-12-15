@@ -1,0 +1,16 @@
+[
+  {
+    "act": "DPDP Act 2023",
+    "section": "Section 8",
+    "keywords": ["personal data", "consent", "processing"],
+    "summary": "Personal data must be processed lawfully, fairly, and with the consent of the data principal.",
+    "full_text": "A data fiduciary shall process personal data only for lawful purposes with the consent of the data principal."
+  },
+  {
+    "act": "IT Act 2000",
+    "section": "Section 43A",
+    "keywords": ["data breach", "negligence", "compensation"],
+    "summary": "Companies handling sensitive personal data must implement reasonable security practices.",
+    "full_text": "Where a body corporate is negligent in implementing reasonable security practices..."
+  }
+]
