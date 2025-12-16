@@ -1,4 +1,4 @@
-from fuzzywuzzy import process
+from rapidfuzz import process, fuzz
 import json
 
 with open("data/laws.json", "r", encoding="utf-8") as f:
@@ -6,13 +6,19 @@ with open("data/laws.json", "r", encoding="utf-8") as f:
 
 def fuzzy_search(query: str):
     choices = [law["summary"] for law in LAWS]
-    best_match, score = process.extractOne(query, choices)
+
+    result = process.extractOne(
+        query,
+        choices,
+        scorer=fuzz.token_set_ratio
+    )
+
+    if not result:
+        return None, 0.0, "fuzzy_failed"
+
+    best_match, score, index = result
 
     if score < 60:
-        return None, score
+        return None, score / 100, "fuzzy_failed"
 
-    for law in LAWS:
-        if law["summary"] == best_match:
-            return law, score
-
-    return None, score
+    return LAWS[index], score / 100, "fuzzy"

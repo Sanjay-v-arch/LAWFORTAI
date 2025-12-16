@@ -1,21 +1,36 @@
-from sentence_transformers import SentenceTransformer, util
-import json
+from DataBase.mongo_models import collection
+from sentence_transformers import SentenceTransformer
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
 
 model = SentenceTransformer("all-MiniLM-L6-v2")
-
-with open("data/laws.json", "r", encoding="utf-8") as f:
-    LAWS = json.load(f)
+SEMANTIC_THRESHOLD = 0.5
 
 def semantic_search(query: str):
-    query_emb = model.encode(query, convert_to_tensor=True)
-    law_texts = [law["summary"] for law in LAWS]
-    law_embs = model.encode(law_texts, convert_to_tensor=True)
+    # Encode query
+    query_vec = model.encode(query).reshape(1, -1)
 
-    scores = util.cos_sim(query_emb, law_embs)[0]
-    best_idx = scores.argmax().item()
-    confidence = scores[best_idx].item()
+    # Fetch laws with embeddings
+    docs = list(collection.find(
+        {"embedding": {"$exists": True}},
+        {"_id": 0, "act": 1, "section": 1, "title": 1, "summary": 1, "embedding": 1}
+    ))
 
-    if confidence < 0.5:
-        return None, confidence
+    if not docs:
+        return None, 0.0, "semantic"
 
-    return LAWS[best_idx], confidence
+    best_score = 0.0
+    best_law = None
+
+    for law in docs:
+        law_vec = np.array(law["embedding"]).reshape(1, -1)
+        score = cosine_similarity(query_vec, law_vec)[0][0]
+
+        if score > best_score:
+            best_score = score
+            best_law = law
+
+    if best_score < SEMANTIC_THRESHOLD:
+        return None, best_score, "semantic"
+
+    return best_law, best_score, "semantic"

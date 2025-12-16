@@ -1,13 +1,15 @@
-from nlp.engine import fuzzy_search
+from nlp.engine import process_query
 
 queries = [
-    "AI deepfake harassment",
-    "phishing email attack",
-    "IoT botnet attack",
-    "health data privacy",
-    "ransomware deployment"
+    "company leaking personal data",
+    "user consent violation",
+    "unauthorized data processing",
+    "random football question"
 ]
 
 for q in queries:
-    law, score, method = fuzzy_search(q)
-    print(q, "=>", law["title"] if law else "No match", score)
+    law, score, method = process_query(q)
+    print(f"\nQuery: {q}")
+    print(f"Method: {method}")
+    print(f"Score: {score}")
+    print(f"Law: {law}")
