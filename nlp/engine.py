@@ -3,15 +3,15 @@ from nlp.semantic_match import semantic_search
 
 def process_query(query: str):
 
-    # 1️⃣ FUZZY
+    # 1️⃣ FUZZY SEARCH
     law, confidence, method = fuzzy_search(query)
     if law:
         return law, confidence, method
 
-    # 2️⃣ SEMANTIC (XAI)
-    law, confidence = semantic_search(query)
+    # 2️⃣ SEMANTIC SEARCH
+    law, confidence, method = semantic_search(query)
     if law:
-        return law, confidence, "semantic"
+        return law, confidence, method
 
-    # 3️⃣ LLM FALLBACK
+    # 3️⃣ FALLBACK
     return None, 0.0, "fallback"

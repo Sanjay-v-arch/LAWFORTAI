@@ -1,14 +1,17 @@
-import pyttsx3
+# voice/tts.py
 
-def speak_text(text, filename=None):
+VOICE_TTS_AVAILABLE = True
+
+try:
+    import pyttsx3
+except Exception as e:
+    print(f"⚠️ TTS (pyttsx3) disabled: {e}")
+    VOICE_TTS_AVAILABLE = False
+
+def speak_text(text):
+    if not VOICE_TTS_AVAILABLE:
+        print("TTS not available. Skipping speak.")
+        return
     engine = pyttsx3.init()
-    
-    if filename:
-        # save audio to file
-        engine.save_to_file(text, filename)
-        engine.runAndWait()
-        return filename
-    else:
-        engine.say(text)
-        engine.runAndWait()
-        return None
+    engine.say(text)
+    engine.runAndWait()

@@ -1,20 +1,39 @@
-from DataBase.mongo_models import collection
+from DataBase.mongo_models import query_collection
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 
+# Load embedding model once
 model = SentenceTransformer("all-MiniLM-L6-v2")
-SEMANTIC_THRESHOLD = 0.5
+
+SEMANTIC_THRESHOLD = 0.40
+
 
 def semantic_search(query: str):
-    # Encode query
+    """
+    Semantic search over legal documents stored in MongoDB
+    """
+
+    # Encode user query
     query_vec = model.encode(query).reshape(1, -1)
 
-    # Fetch laws with embeddings
-    docs = list(collection.find(
-        {"embedding": {"$exists": True}},
-        {"_id": 0, "act": 1, "section": 1, "title": 1, "summary": 1, "embedding": 1}
-    ))
+    # Fetch documents with embeddings
+    docs = list(
+        query_collection.find(
+            {
+                "embedding": {"$exists": True},
+                "summary": {"$exists": True}
+            },
+            {
+                "_id": 0,
+                "act": 1,
+                "section": 1,
+                "summary": 1,
+                "full_text": 1,
+                "embedding": 1
+            }
+        )
+    )
 
     if not docs:
         return None, 0.0, "semantic"
