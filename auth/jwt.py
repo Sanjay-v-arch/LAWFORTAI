@@ -1,58 +1,31 @@
-import os
 from datetime import datetime, timedelta
-from dotenv import load_dotenv
-from jose import jwt
+from jose import JWTError, jwt
+import os
 from passlib.context import CryptContext
 
-# Load environment variables
-load_dotenv()
-
-# JWT config
-SECRET_KEY = os.getenv("SECRET_KEY", "fallback_secret_change_me")
+SECRET_KEY = os.getenv("SECRET_KEY", "supersecretkey")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_DAYS = 1
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
 
-# Password hashing config (bcrypt-safe)
-pwd_context = CryptContext(
-    schemes=["bcrypt"],
-    deprecated="auto"
-)
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# ------------------------
-# PASSWORD UTILS
-# ------------------------
-
-def hash_password(password: str) -> str:
-    """
-    Hash password safely for bcrypt (max 72 bytes)
-    """
-    if not password:
-        raise ValueError("Password cannot be empty")
-
-    password = password.encode("utf-8")[:72].decode("utf-8", errors="ignore")
+def hash_password(password: str):
     return pwd_context.hash(password)
 
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
 
-def verify_password(password: str, hashed_password: str) -> bool:
-    """
-    Verify password against stored hash
-    """
-    if not password or not hashed_password:
-        return False
-
-    password = password.encode("utf-8")[:72].decode("utf-8", errors="ignore")
-    return pwd_context.verify(password, hashed_password)
-
-# ------------------------
-# JWT UTILS
-# ------------------------
-
-def create_token(data: dict) -> str:
-    """
-    Create JWT access token with expiry
-    """
+def create_token(data: dict):
     to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS)
+    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
 
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+# ✅ ADD THIS
+def decode_token(token: str):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload
+    except JWTError:
+        return None
